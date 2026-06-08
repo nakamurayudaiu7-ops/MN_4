@@ -3,9 +3,9 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Depends
 
-from api.db import get_system
-from api.schemas.system import System, Response
-from api.schemas.message import Message, MessageBase
+from backend.api.db import get_system
+from backend.api.schemas.system import System, Response
+from backend.api.schemas.message import Message, MessageBase
 
 router = APIRouter()
 

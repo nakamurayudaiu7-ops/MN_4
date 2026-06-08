@@ -4,14 +4,14 @@ import json
 import time
 
 import requests
-import api.schemas.message
+import backend.api.schemas.message
 
 BASE_URL = 'http://127.0.0.1:8000'
 
 
 def post_message(name, message):
     url = f"{BASE_URL}/messages"
-    m = api.schemas.message.MessageBase(name=name, message=message)
+    m = backend.api.schemas.message.MessageBase(name=name, message=message)
     requests.post(url, json=m.model_dump())
 
 
@@ -19,7 +19,7 @@ def get_message(message_id):
     url = f"{BASE_URL}/messages/{message_id}"
     res = requests.get(url)
     res_dict = json.loads(res.text)
-    response = api.schemas.message.Message.model_validate(res_dict)
+    response = backend.api.schemas.message.Message.model_validate(res_dict)
     return response
 
 

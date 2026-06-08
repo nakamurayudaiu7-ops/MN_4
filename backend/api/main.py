@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
 
-from api.schemas.system import System
-from api.routers import message
+from backend.api.schemas.system import System
+from backend.api.routers import message
 
 
 def load(app):

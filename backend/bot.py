@@ -4,7 +4,7 @@ import json
 import time
 
 import requests
-import api.schemas.message
+import backend.api.schemas.message
 
 
 class Bot():
@@ -14,14 +14,14 @@ class Bot():
 
     def post_message(self, name, message):
         url = f"{self.base_url}/messages"
-        m = api.schemas.message.MessageBase(name=name, message=message)
+        m = backend.api.schemas.message.MessageBase(name=name, message=message)
         requests.post(url, json=m.model_dump())
 
     def get_message(self, message_id):
         url = f"{self.base_url}/messages/{message_id}"
         res = requests.get(url)
         res_dict = json.loads(res.text)
-        response = api.schemas.message.Message.model_validate(res_dict)
+        response = backend.api.schemas.message.Message.model_validate(res_dict)
         return response
 
     def check(self):
