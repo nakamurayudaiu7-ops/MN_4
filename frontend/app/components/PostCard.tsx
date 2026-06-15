@@ -27,6 +27,15 @@ export default function PostCard({ post, onLike }: PostCardProps) {
           {/* テキスト */}
           <p className="text-gray-900 text-base mt-2 break-words">{post.content}</p>
 
+          {/* カテゴリ */}
+          {post.category && (
+            <div className="mt-2">
+              <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
+                #{post.category}
+              </span>
+            </div>
+          )}
+
           {/* アクション */}
           <div className="flex gap-8 mt-3 text-gray-500 max-w-xs">
             <button className="flex items-center gap-2 hover:text-blue-500 transition group">

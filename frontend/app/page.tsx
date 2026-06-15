@@ -63,7 +63,7 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-white">
       {/* ヘッダー */}
       <header className="border-b border-gray-200 p-4 bg-white bg-opacity-80 backdrop-blur sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-gray-900">やったー！</h1>
+        <h1 className="text-xl font-bold text-gray-900">Yatter</h1>
       </header>
 
       {/* メイン */}
