@@ -9,9 +9,9 @@ export default function PostCard({ post, onLike }: PostCardProps) {
   return (
     <div className="border-b border-gray-200 p-4 hover:bg-gray-50 transition cursor-pointer">
       <div className="flex gap-3">
-        {/* アバター */}
+        {/* プロフィール画像 */}
         <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-          {post.avatar}
+          {post.profileImage}
         </div>
 
         {/* 投稿内容 */}
@@ -43,12 +43,6 @@ export default function PostCard({ post, onLike }: PostCardProps) {
                 ❤️
               </span>
               <span className="text-sm">{post.likes_count}</span>
-            </button>
-
-            <button className="flex items-center gap-2 hover:text-blue-500 transition group">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full group-hover:bg-blue-100">
-                📤
-              </span>
             </button>
           </div>
         </div>
