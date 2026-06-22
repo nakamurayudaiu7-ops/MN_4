@@ -43,11 +43,11 @@ export default function Timeline({ posts, onLike }: TimelineProps) {
   return (
     <div className="border-l border-r border-gray-200 divide-y divide-gray-200 min-h-screen">
       {/* フィルタボタン */}
-      <div className="border-b border-gray-200 p-4 bg-white sticky top-16 z-10">
-        <div className="flex gap-2 flex-wrap">
+      <div className="border-b border-gray-200 p-2 sm:p-4 bg-white sticky top-16 z-10">
+        <div className="flex gap-1 sm:gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-full font-semibold transition ${
+            className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded-full font-semibold transition ${
               selectedCategory === null
                 ? "bg-blue-500 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -59,7 +59,7 @@ export default function Timeline({ posts, onLike }: TimelineProps) {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full font-semibold transition ${
+              className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded-full font-semibold transition ${
                 selectedCategory === category
                   ? "bg-blue-500 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"

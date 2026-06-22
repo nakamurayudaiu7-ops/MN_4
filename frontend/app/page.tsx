@@ -6,6 +6,12 @@ import Timeline from "./components/Timeline";
 import { Post } from "./types/post";
 
 export default function Home() {
+  // ダミーデータ用：現在時刻を基準に過去の時刻を計算
+  const now = new Date();
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -13,9 +19,9 @@ export default function Home() {
       profileImage: "Y",
       content: "課題終わらせた！",
       category: "宿題",
-      images: [],
+      images: ["https://cdn.pixabay.com/photo/2016/11/22/19/27/animal-1850192_1280.jpg"],
       likes_count: 5,
-      created_at: "2時間前",
+      created_at: twoHoursAgo.toISOString(),
     },
     {
       id: 2,
@@ -23,9 +29,12 @@ export default function Home() {
       profileImage: "S",
       content: "筋トレ30分完了💪",
       category: "筋トレ",
-      images: [],
+      images: [
+        "https://cdn.pixabay.com/photo/2020/03/20/20/00/cherry-blossoms-4951853_1280.jpg",
+        "https://cdn.pixabay.com/photo/2015/05/04/10/36/verba-752171_1280.jpg"
+      ],
       likes_count: 12,
-      created_at: "5時間前",
+      created_at: fiveHoursAgo.toISOString(),
     },
     {
       id: 3,
@@ -35,7 +44,7 @@ export default function Home() {
       category: "家事",
       images: [],
       likes_count: 8,
-      created_at: "1日前",
+      created_at: oneDayAgo.toISOString(),
     },
   ]);
 
@@ -45,8 +54,10 @@ export default function Home() {
       author: "あなた",
       profileImage: "A",
       content,
+      category: undefined,
+      images: [],
       likes_count: 0,
-      created_at: "今",
+      created_at: new Date().toISOString(),
     };
     setPosts([newPost, ...posts]);
   };
@@ -62,12 +73,18 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* ヘッダー */}
-      <header className="border-b border-gray-200 p-4 bg-white bg-opacity-80 backdrop-blur sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-gray-900">Yatter</h1>
+      <header className="border-b border-gray-200 p-3 sm:p-4 bg-white bg-opacity-80 backdrop-blur sticky top-0 z-10">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900">Yatter</h1>
       </header>
 
       {/* メイン */}
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full border-l border-r border-gray-200">
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full border-l border-r border-gray-200 hidden sm:flex">
+        <PostForm onSubmit={handleAddPost} />
+        <Timeline posts={posts} onLike={handleLike} />
+      </main>
+
+      {/* モバイル用メイン */}
+      <main className="flex-1 flex flex-col w-full sm:hidden">
         <PostForm onSubmit={handleAddPost} />
         <Timeline posts={posts} onLike={handleLike} />
       </main>
