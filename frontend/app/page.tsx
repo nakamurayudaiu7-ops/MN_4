@@ -1,9 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PostForm from "./components/PostForm";
 import Timeline from "./components/Timeline";
 import { Post } from "./types/post";
+
+const DEFAULT_CATEGORIES = ["筋トレ", "勉強", "家事"];
+
+function loadCategories() {
+  if (typeof window === "undefined") {
+    return DEFAULT_CATEGORIES;
+  }
+
+  const stored = window.localStorage.getItem("yatter-categories");
+  if (!stored) {
+    return DEFAULT_CATEGORIES;
+  }
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CATEGORIES;
+  } catch {
+    return DEFAULT_CATEGORIES;
+  }
+}
 
 export default function Home() {
   // ダミーデータ用：現在時刻を基準に過去の時刻を計算
@@ -18,7 +38,7 @@ export default function Home() {
       author: "山田太郎",
       profileImage: "Y",
       content: "課題終わらせた！",
-      category: "宿題",
+      category: "勉強",
       images: ["https://cdn.pixabay.com/photo/2016/11/22/19/27/animal-1850192_1280.jpg"],
       likes_count: 5,
       created_at: twoHoursAgo.toISOString(),
@@ -47,19 +67,35 @@ export default function Home() {
       created_at: oneDayAgo.toISOString(),
     },
   ]);
+  const [categories, setCategories] = useState<string[]>(loadCategories);
 
-  const handleAddPost = (content: string) => {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("yatter-categories", JSON.stringify(categories));
+    }
+  }, [categories]);
+
+  const handleAddPost = (content: string, category?: string) => {
     const newPost: Post = {
       id: posts.length + 1,
       author: "あなた",
       profileImage: "A",
       content,
-      category: undefined,
+      category,
       images: [],
       likes_count: 0,
       created_at: new Date().toISOString(),
     };
     setPosts([newPost, ...posts]);
+  };
+
+  const handleAddCategory = (category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    setCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
   };
 
   const handleLike = (id: number) => {
@@ -79,14 +115,14 @@ export default function Home() {
 
       {/* メイン */}
       <main className="flex-1 flex flex-col max-w-2xl mx-auto w-full border-l border-r border-gray-200 hidden sm:flex">
-        <PostForm onSubmit={handleAddPost} />
-        <Timeline posts={posts} onLike={handleLike} />
+        <PostForm onSubmit={handleAddPost} categories={categories} onAddCategory={handleAddCategory} />
+        <Timeline posts={posts} categories={categories} onLike={handleLike} />
       </main>
 
       {/* モバイル用メイン */}
       <main className="flex-1 flex flex-col w-full sm:hidden">
-        <PostForm onSubmit={handleAddPost} />
-        <Timeline posts={posts} onLike={handleLike} />
+        <PostForm onSubmit={handleAddPost} categories={categories} onAddCategory={handleAddCategory} />
+        <Timeline posts={posts} categories={categories} onLike={handleLike} />
       </main>
     </div>
   );
