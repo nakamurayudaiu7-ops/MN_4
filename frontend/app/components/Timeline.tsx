@@ -6,33 +6,11 @@ import PostCard from "./PostCard";
 
 interface TimelineProps {
   posts: Post[];
+  categories: string[];
   onLike: (id: number) => void;
 }
 
-// TODO: バックエンド完成後、以下に修正予定
-// const CATEGORIES = ["筋トレ", "宿題", "家事"] as const;
-// 
-// 改善案：
-// 1. Timeline コンポーネントの props に categories を追加
-// 2. バックエンド API (GET /api/categories) から動的に取得
-// 3. ハードコードを削除し、以下のように修正する：
-//
-// interface TimelineProps {
-//   posts: Post[];
-//   categories: string[];  // ← バックエンドから受け取る
-//   onLike: (id: number) => void;
-// }
-//
-// export default function Timeline({ posts, categories, onLike }: TimelineProps) {
-//   // CATEGORIES の代わりに categories を使う
-//   {categories.map((category) => (...))}
-//
-// 対応するバックエンド API：
-// - GET /api/categories → { "categories": ["筋トレ", "宿題", "家事"] }
-
-const CATEGORIES = ["筋トレ", "宿題", "家事"] as const;
-
-export default function Timeline({ posts, onLike }: TimelineProps) {
+export default function Timeline({ posts, categories, onLike }: TimelineProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // フィルタ処理
@@ -55,7 +33,7 @@ export default function Timeline({ posts, onLike }: TimelineProps) {
           >
             全て
           </button>
-          {CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
