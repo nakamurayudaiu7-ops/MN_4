@@ -92,12 +92,14 @@ export default function PostCard({ post, onLike }: PostCardProps) {
           )}
 
           {/* アクション */}
+          {/* リプライボタン */}
           <div className="flex gap-4 sm:gap-8 mt-3 text-gray-500 max-w-xs text-sm sm:text-base">
-            <button className="flex items-center gap-2 hover:text-blue-500 transition group">
+            { /*<button className="flex items-center gap-2 hover:text-blue-500 transition group">
               <span className="flex items-center justify-center w-8 h-8 rounded-full group-hover:bg-blue-100">
                 💬
               </span>
             </button>
+            */}
 
             <button
               onClick={handleLikeClick}
