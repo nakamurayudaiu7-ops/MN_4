@@ -218,11 +218,12 @@ $(function () {
     $('button#post_message').on(
         'click', function () {
             let data = {
-                name: $('#post_message_name').val().trim(),
-                message: $('#post_message_message').val().trim(),
-                important: $('#post_message_important').prop('checked')
+                author: $('#post_message_name').val().trim(),
+                content: $('#post_message_message').val().trim(),
+                category:
+                
             }
-            if (data['name'].length == 0 || data['message'].length == 0) {
+            if (data['author'].length == 0 || data['message'].length == 0) {
                 return
             }
             message_post(data).then(function() {
