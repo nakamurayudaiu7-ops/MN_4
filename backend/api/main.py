@@ -4,10 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
-
 from backend.api.schemas.system import System
-from backend.api.routers import message, post
+from backend.api.routers import message
 
 
 def load_system(app: FastAPI) -> None:
@@ -45,13 +45,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/", summary="API status")
-async def get_status():
-    return JSONResponse(
-        {"status": "ok", "message": "Backend API is running"}
-    )
+@app.get("/", response_class=HTMLResponse)
+async def get_client():
+    """Return client HTML"""
+    data = ''
+    with open('client.html', 'rt', encoding='utf-8') as f:
+        data = f.read()
+    return data
 
 
 app.include_router(message.router)
-app.include_router(post.router, prefix="/api")

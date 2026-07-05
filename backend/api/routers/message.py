@@ -5,16 +5,16 @@ from fastapi import Depends
 
 from backend.api.db import get_system
 from backend.api.schemas.system import System, Response
-from backend.api.schemas.message import Message, MessageBase
+from backend.api.schemas.post import Post,PostBase
 
 router = APIRouter()
 
 
-@router.get("/messages", response_model=Response)
+@router.get("/api/posts", response_model=Response)
 async def get_messages(system: System = Depends(get_system),
                        from_id: int | None = 1, to_id: int | None = None,
                        from_time: datetime | None = None,
-                       important: bool | None = None,
+                       category: str | None = None,
                        ids_only: bool = False):
     """全ての message を返す"""
     if from_id is None or from_id < 1:
@@ -24,12 +24,11 @@ async def get_messages(system: System = Depends(get_system),
         to_id = system.current_id
     l: list = []
     for i in range(from_id, to_id + 1):
-        if i in system.messages:
-            if from_time is None or \
-               from_time <= system.messages[i].update_time:
-                if important is None:
+        if i in system.posts:
+            if from_time is None or from_time <= system.posts[i].created_at:
+                if category is None:
                     l.append(i)
-                elif system.messages[i].important == important:
+                elif system.posts[i].category == category:
                     l.append(i)
 
     # ID のリストのみ返す
@@ -38,110 +37,53 @@ async def get_messages(system: System = Depends(get_system),
             current_id=system.current_id,
             current_time=datetime.now(),
             ids=l)
-
     return Response(
         current_id=system.current_id,
         current_time=datetime.now(),
-        messages={i: system.messages[i] for i in l})
+        posts={i: system.posts[i] for i in l})
 
 
-@router.get("/messages/current_id")
+@router.get("/api/posts/current_id")
 async def get_messages_current_id(system: System = Depends(get_system)):
     return {"current_id": system.current_id}
 
 
-@router.post("/messages", response_model=Message)
-async def post_message(message: MessageBase,
+@router.post("/api/posts", response_model=Post)
+async def post_message(message: PostBase,
                        system: System = Depends(get_system)):
     """message のPOST"""
     next_id = system.current_id + 1
     now = datetime.now()
-    m = Message(
+    m = Post(
         id=next_id,
-        time=now,
-        update_time=now,
+        created_at=now,
+        likes_count=0,
         **message.model_dump(),
     )
-    system.messages[next_id] = m
+    system.posts[next_id] = m
     system.current_id = next_id
+    print(m)
     return m
 
 
-@router.get("/messages/{message_id}", response_model=Message)
+@router.get("/api/posts/{message_id}", response_model=Post)
 async def get_message(message_id: int,
                       system: System = Depends(get_system), ):
     """個別 message のGET"""
     # 該当 ID の message が存在しない場合は 404 を返す(他の関数でも同様)
-    if message_id not in system.messages:
+    if message_id not in system.posts:
         raise HTTPException(status_code=404,
                             detail="Message cannot be found")
+    
+    return system.posts[message_id]
 
-    return system.messages[message_id]
-
-
-@router.put("/messages/{message_id}", response_model=Message)
-async def put_message(message_id: int,
-                      message: MessageBase,
-                      system: System = Depends(get_system)):
-    """message のPUT"""
-    if message_id not in system.messages:
+@router.post('/api/posts/{message_id}/like')
+async def post_like(message_id: int,
+                    system:System = Depends(get_system)):
+    if message_id not in system.posts:
         raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-
-    m = system.messages[message_id]
-    m.message = message.message
-    m.important = message.important
-    m.update_time = datetime.now()
-    system.messages[message_id] = m
+        detail="Message cannot be found")
+    
+    m = system.posts[message_id]
+    m.likes_count +=1
     return m
-
-
-@router.delete("/messages/{message_id}")
-async def delete_message(message_id: int,
-                         system: System = Depends(get_system)):
-    """message のDELETE"""
-    if message_id not in system.messages:
-        raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-
-    del system.messages[message_id]
-    return {"success": True}
-
-
-@router.get("/messages/{message_id}/important")
-async def get_message_important(message_id: int,
-                                system: System = Depends(get_system)):
-    """message important flag の GET """
-    if message_id not in system.messages:
-        raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-
-    return {"important": system.messages[message_id].important}
-
-
-@router.put("/messages/{message_id}/important")
-async def put_message_important(message_id: int,
-                                system: System = Depends(get_system)):
-    """message important flag の PUT (important = True)"""
-    if message_id not in system.messages:
-        raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-
-    m = system.messages[message_id]
-    m.update_time = datetime.now()
-    m.important = True
-    return {"success": True}
-
-
-@router.delete("/messages/{message_id}/important")
-async def delete_message_important(message_id: int,
-                                   system: System = Depends(get_system)):
-    """message important flag の DELETE (important = False)"""
-    if message_id not in system.messages:
-        raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-
-    m = system.messages[message_id]
-    m.update_time = datetime.now()
-    m.important = False
-    return {"success": True}
