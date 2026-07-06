@@ -3,11 +3,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import ValidationError
+
 from backend.api.schemas.system import System
-from backend.api.routers import message
+from backend.api.routers import message, posts
 
 
 def load_system(app: FastAPI) -> None:
@@ -46,6 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/", response_class=HTMLResponse)
 async def get_client():
     """Return client HTML"""
@@ -56,3 +57,4 @@ async def get_client():
 
 
 app.include_router(message.router)
+app.include_router(posts.router)
