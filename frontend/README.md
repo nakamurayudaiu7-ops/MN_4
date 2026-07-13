@@ -22,6 +22,12 @@ npm run dev
 ```
 
 開発サーバーが起動します → [http://localhost:3000](http://localhost:3000)
+page.tsxのAPI_BASEで、バックエンドの接続先を指定すること！！
+
+Backendのサーバー起動
+uvicorn backend.api.main:app --host 0.0.0.0 --port 8000
+
+
 
 ---
 
