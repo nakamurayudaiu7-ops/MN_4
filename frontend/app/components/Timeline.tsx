@@ -8,9 +8,11 @@ interface TimelineProps {
   posts: Post[];
   categories: string[];
   onLike: (id: number) => void;
+  onDelete?: (id: number) => void;
+  currentUserName?: string | null;
 }
 
-export default function Timeline({ posts, categories, onLike }: TimelineProps) {
+export default function Timeline({ posts, categories, onLike, onDelete, currentUserName }: TimelineProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // フィルタ処理
@@ -56,7 +58,15 @@ export default function Timeline({ posts, categories, onLike }: TimelineProps) {
           <p className="text-sm">今日やったことを共有しましょう！</p>
         </div>
       ) : (
-        filteredPosts.map((post) => <PostCard key={post.id} post={post} onLike={onLike} />)
+        filteredPosts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            onLike={onLike}
+            onDelete={onDelete}
+            isOwner={currentUserName ? post.author_username === currentUserName : false}
+          />
+        ))
       )}
     </div>
   );

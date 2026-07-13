@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
 from backend.api.database import (
@@ -6,6 +6,7 @@ from backend.api.database import (
     create_post,
     create_session,
     create_user,
+    delete_post,
     get_user_from_token,
     like_post,
     list_notifications,
@@ -77,6 +78,17 @@ async def create_message(request: PostCreateRequest, current_user: dict = Depend
     return post
 
 
+@router.post("/api/posts/upload", status_code=201)
+async def upload_images(files: list[UploadFile] = File(...), current_user: dict = Depends(get_current_user)):
+    urls: list[str] = []
+    for file in files:
+        content = await file.read()
+        import base64
+        encoded = base64.b64encode(content).decode("ascii")
+        urls.append(f"data:{file.content_type or 'image/png'};base64,{encoded}")
+    return {"images": urls}
+
+
 @router.post("/api/posts/{message_id}/like")
 async def post_like(message_id: int, current_user: dict = Depends(get_current_user)):
     try:
@@ -85,6 +97,15 @@ async def post_like(message_id: int, current_user: dict = Depends(get_current_us
         raise HTTPException(status_code=404, detail="message not found") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete("/api/posts/{message_id}")
+async def delete_message(message_id: int, current_user: dict = Depends(get_current_user)):
+    try:
+        delete_post(message_id, current_user["id"])
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="message not found") from exc
+    return {"ok": True}
 
 
 @router.get("/api/notifications")

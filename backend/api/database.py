@@ -271,6 +271,15 @@ def list_notifications(user_id: int) -> list[dict[str, Any]]:
     ]
 
 
+def delete_post(post_id: int, user_id: int) -> None:
+    with get_connection() as conn:
+        row = conn.execute("SELECT id FROM posts WHERE id = ? AND user_id = ?", (post_id, user_id)).fetchone()
+        if row is None:
+            raise KeyError("post not found")
+        conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
+        conn.commit()
+
+
 def serialize_post(row: sqlite3.Row) -> dict[str, Any]:
     images = []
     if row["images_json"]:

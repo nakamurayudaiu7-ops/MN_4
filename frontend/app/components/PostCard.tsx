@@ -7,9 +7,11 @@ import { formatRelativeTime } from "../utils/time";
 interface PostCardProps {
   post: Post;
   onLike: (id: number) => void;
+  onDelete?: (id: number) => void;
+  isOwner?: boolean;
 }
 
-export default function PostCard({ post, onLike }: PostCardProps) {
+export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleLikeClick = () => {
@@ -100,6 +102,15 @@ export default function PostCard({ post, onLike }: PostCardProps) {
               </span>
             </button>
             */}
+
+            {isOwner && onDelete ? (
+              <button
+                onClick={() => onDelete(post.id)}
+                className="rounded-full border border-red-200 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+              >
+                削除
+              </button>
+            ) : null}
 
             <button
               onClick={handleLikeClick}

@@ -8,11 +8,16 @@ interface PostFormProps {
   onAddCategory: (category: string) => void;
 }
 
+//const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
+//const API_BASE = "http://127.0.0.1:8001";
+const API_BASE = "http://192.168.50.15:8000";
+
 export default function PostForm({ onSubmit, categories, onAddCategory }: PostFormProps) {
   const [input, setInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(categories[0] ?? "");
   const [customCategory, setCustomCategory] = useState("");
-  const [imageInput, setImageInput] = useState("");
+  const [imageFiles, setImageFiles] = useState<FileList | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -25,20 +30,36 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
     }
   }, [categories, selectedCategory]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const content = input.trim();
     const category = selectedCategory.trim();
-    const images = imageInput
-      .split(/\n+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
 
-    if (content && category) {
-      onSubmit(content, category, images);
-      setInput("");
-      setImageInput("");
-      setCustomCategory("");
+    if (!content || !category) {
+      return;
     }
+
+    let images: string[] = [];
+    if (imageFiles && imageFiles.length > 0) {
+      setUploading(true);
+      const formData = new FormData();
+      Array.from(imageFiles).forEach((file) => formData.append("files", file));
+      const token = typeof window !== "undefined" ? window.localStorage.getItem("yatter-token") : null;
+      const response = await fetch(`${API_BASE}/api/posts/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (response.ok) {
+        const data = await response.json();
+        images = data.images ?? [];
+      }
+      setUploading(false);
+    }
+
+    onSubmit(content, category, images);
+    setInput("");
+    setImageFiles(null);
+    setCustomCategory("");
   };
 
   const handleAddCategory = () => {
@@ -112,21 +133,24 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
             rows={3}
           />
 
-          <textarea
-            value={imageInput}
-            onChange={(e) => setImageInput(e.target.value)}
-            placeholder="画像URLを1行ずつ入れる（任意）"
-            className="mt-2 w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none placeholder-gray-400"
-            rows={2}
-          />
+          <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => setImageFiles(e.target.files)}
+              className="text-sm"
+            />
+            {uploading ? <span className="text-blue-500">アップロード中...</span> : null}
+          </label>
 
           <div className="mt-3 flex justify-end sm:mt-4">
             <button
               onClick={handleSubmit}
-              disabled={isDisabled}
+              disabled={isDisabled || uploading}
               className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-2 sm:text-base"
             >
-              投稿する
+              {uploading ? "送信中..." : "投稿する"}
             </button>
           </div>
         </div>
