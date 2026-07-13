@@ -7,8 +7,8 @@ import Timeline from "./components/Timeline";
 import { Post } from "./types/post";
 
 const DEFAULT_CATEGORIES = ["筋トレ", "勉強", "家事"];
-const API_BASE = "http://192.168.50.15:8000";
-
+const API_BASE = "http://127.0.0.1:8001";
+// const API_BASE = "http://192.168.50.15:8000";
 type AuthMode = "login" | "register";
 
 type UserSession = {

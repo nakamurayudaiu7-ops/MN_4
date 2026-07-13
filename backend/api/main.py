@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from backend.api.database import UPLOAD_DIR
-from backend.api.routers import message
+from backend.api.routers import message, posts
 
 
 app = FastAPI()
