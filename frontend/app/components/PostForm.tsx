@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 interface PostFormProps {
-  onSubmit: (content: string, category?: string) => void;
+  onSubmit: (content: string, category?: string, images?: string[]) => void;
   categories: string[];
   onAddCategory: (category: string) => void;
 }
@@ -12,6 +12,7 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
   const [input, setInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(categories[0] ?? "");
   const [customCategory, setCustomCategory] = useState("");
+  const [imageInput, setImageInput] = useState("");
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -27,10 +28,15 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
   const handleSubmit = () => {
     const content = input.trim();
     const category = selectedCategory.trim();
+    const images = imageInput
+      .split(/\n+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
 
     if (content && category) {
-      onSubmit(content, category);
+      onSubmit(content, category, images);
       setInput("");
+      setImageInput("");
       setCustomCategory("");
     }
   };
@@ -56,16 +62,14 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
   const isDisabled = input.trim() === "" || selectedCategory.trim() === "";
 
   return (
-    <div className="border-b border-gray-200 p-3 sm:p-4 bg-white">
+    <div className="border-b border-gray-200 bg-white p-3 sm:p-4">
       <div className="flex gap-2 sm:gap-4">
-        {/* アバター */}
-        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg flex-shrink-0">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-400 text-sm font-bold text-white sm:h-12 sm:w-12 sm:text-lg">
           ME
         </div>
 
-        {/* 入力エリア */}
         <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <label className="text-sm font-semibold text-gray-700">この投稿のカテゴリ</label>
             <select
               value={selectedCategory}
@@ -88,7 +92,7 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
                 }
               }}
               placeholder="新しいカテゴリを追加"
-              className="flex-1 min-w-[140px] rounded-full border border-gray-300 px-3 py-1 text-sm outline-none focus:border-blue-500"
+              className="min-w-[140px] flex-1 rounded-full border border-gray-300 px-3 py-1 text-sm outline-none focus:border-blue-500"
             />
             <button
               type="button"
@@ -104,15 +108,23 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="今日やったことは？"
-            className="w-full text-base sm:text-lg resize-none outline-none placeholder-gray-500 bg-transparent"
+            className="w-full resize-none bg-transparent text-base outline-none placeholder-gray-500 sm:text-lg"
             rows={3}
           />
 
-          <div className="flex justify-end mt-3 sm:mt-4">
+          <textarea
+            value={imageInput}
+            onChange={(e) => setImageInput(e.target.value)}
+            placeholder="画像URLを1行ずつ入れる（任意）"
+            className="mt-2 w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none placeholder-gray-400"
+            rows={2}
+          />
+
+          <div className="mt-3 flex justify-end sm:mt-4">
             <button
               onClick={handleSubmit}
               disabled={isDisabled}
-              className="px-4 sm:px-6 py-1.5 sm:py-2 text-sm sm:text-base bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-2 sm:text-base"
             >
               投稿する
             </button>

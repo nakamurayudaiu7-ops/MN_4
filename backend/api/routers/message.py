@@ -1,103 +1,99 @@
-#done
-#いいねの押下とその数の取得
-#投稿
-#カテゴリ分けは数種類
-#カテゴリをユーザが記入できる
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from pydantic import BaseModel, Field
 
-#to do
-#自分の投稿を見れるように
-#ユーザー認証　または　投稿の削除
-
-#DBのSQLite化
-#コメント機能
-#グループ作成
-
-from datetime import datetime
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import Depends
-
-from backend.api.db import get_system
-from backend.api.schemas.system import System, Response
-from backend.api.schemas.post import Post,PostBase
+from backend.api.database import (
+    authenticate_user,
+    create_post,
+    create_session,
+    create_user,
+    get_user_from_token,
+    like_post,
+    list_notifications,
+    list_posts,
+)
 
 router = APIRouter()
 
 
-@router.get("/api/posts", response_model=Response)
-async def get_messages(system: System = Depends(get_system),
-                       from_id: int | None = 1, to_id: int | None = None,
-                       from_time: datetime | None = None,
-                       category: str | None = None,
-                       ids_only: bool = False):
-    """全ての message を返す"""
-    if from_id is None or from_id < 1:
-        from_id = 1
-    if to_id is None:
-        # to_id が指定されない場合は，現在の最大IDまで取得する．
-        to_id = system.current_id
-    l: list = []
-    for i in range(from_id, to_id + 1):
-        if i in system.posts:
-            if from_time is None or from_time <= system.posts[i].created_at:
-                if category is None:
-                    l.append(i)
-                elif system.posts[i].category == category:
-                    l.append(i)
-
-    # ID のリストのみ返す
-    if ids_only:
-        return Response(
-            current_id=system.current_id,
-            current_time=datetime.now(),
-            ids=l)
-    return Response(
-        current_id=system.current_id,
-        current_time=datetime.now(),
-        posts={i: system.posts[i] for i in l})
+class RegisterRequest(BaseModel):
+    username: str = Field(..., min_length=2, max_length=24)
+    password: str = Field(..., min_length=4)
+    display_name: str = Field(..., min_length=1, max_length=24)
 
 
-@router.get("/api/posts/current_id")
-async def get_messages_current_id(system: System = Depends(get_system)):
-    return {"current_id": system.current_id}
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=2, max_length=24)
+    password: str = Field(..., min_length=4)
 
 
-@router.post("/api/posts", response_model=Post)
-async def post_message(message: PostBase,
-                       system: System = Depends(get_system)):
-    """message のPOST"""
-    next_id = system.current_id + 1
-    now = datetime.now()
-    m = Post(
-        id=next_id,
-        created_at=now,
-        likes_count=0,
-        **message.model_dump(),
-    )
-    system.posts[next_id] = m
-    system.current_id = next_id
-    print(m)
-    return m
+class PostCreateRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    category: str | None = None
+    images: list[str] = Field(default_factory=list)
 
 
-@router.get("/api/posts/{message_id}", response_model=Post)
-async def get_message(message_id: int,
-                      system: System = Depends(get_system), ):
-    """個別 message のGET"""
-    # 該当 ID の message が存在しない場合は 404 を返す(他の関数でも同様)
-    if message_id not in system.posts:
-        raise HTTPException(status_code=404,
-                            detail="Message cannot be found")
-    
-    return system.posts[message_id]
+def get_current_user(authorization: str | None = Header(default=None)) -> dict:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token required")
+    token = authorization.split(" ", 1)[1]
+    user = get_user_from_token(token)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+    return user
 
-@router.post('/api/posts/{message_id}/like')
-async def post_like(message_id: int,
-                    system:System = Depends(get_system)):
-    if message_id not in system.posts:
-        raise HTTPException(status_code=404,
-        detail="Message cannot be found")
-    
-    m = system.posts[message_id]
-    m.likes_count +=1
-    return m
+
+@router.post("/api/auth/register")
+async def register(request: RegisterRequest):
+    try:
+        user = create_user(request.username, request.password, request.display_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    token = create_session(user["id"])
+    return {"token": token, "user": user}
+
+
+@router.post("/api/auth/login")
+async def login(request: LoginRequest):
+    user = authenticate_user(request.username, request.password)
+    if user is None:
+        raise HTTPException(status_code=401, detail="invalid username or password")
+    token = create_session(user["id"])
+    return {"token": token, "user": user}
+
+
+@router.get("/api/auth/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    return current_user
+
+
+@router.get("/api/posts")
+async def get_posts(username: str | None = None):
+    return {"posts": list_posts(username)}
+
+
+@router.post("/api/posts", status_code=201)
+async def create_message(request: PostCreateRequest, current_user: dict = Depends(get_current_user)):
+    post = create_post(current_user["id"], request.content, request.category, request.images)
+    return post
+
+
+@router.post("/api/posts/{message_id}/like")
+async def post_like(message_id: int, current_user: dict = Depends(get_current_user)):
+    try:
+        return like_post(message_id, current_user["id"])
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="message not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/api/notifications")
+async def get_notifications(current_user: dict = Depends(get_current_user)):
+    return {"notifications": list_notifications(current_user["id"])}
+
+
+@router.get("/api/categories")
+async def get_categories():
+    posts = list_posts()
+    categories = sorted({post["category"] for post in posts if post.get("category")})
+    return {"categories": categories}

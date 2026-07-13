@@ -1,59 +1,36 @@
-import json
-from contextlib import asynccontextmanager
-
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import ValidationError
-
-from backend.api.schemas.system import System
-from backend.api.routers import message, posts
-
-
-def load_system(app: FastAPI) -> None:
-    try:
-        with open("data.json", "rt", encoding="utf-8") as f:
-            data_dict = json.load(f)
-            app.state.system = System.model_validate(data_dict)
-    except (FileNotFoundError, ValidationError):
-        app.state.system = System()
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from backend.api.database import UPLOAD_DIR
+from backend.api.routers import message
 
 
-async def save_system(app: FastAPI) -> None:
-    with open("data.json", "wt", encoding="utf-8") as f:
-        f.write(app.state.system.model_dump_json(indent=4))
+app = FastAPI()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    load_system(app)
-    yield
-    await save_system(app)
-
-
-app = FastAPI(lifespan=lifespan)
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "*"
-        "null",
-    ],
+    allow_origins=frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def get_client():
     """Return client HTML"""
-    data = ''
-    with open('client.html', 'rt', encoding='utf-8') as f:
-        data = f.read()
-    return data
+    with open("client.html", "rt", encoding="utf-8") as handle:
+        return handle.read()
 
 
 app.include_router(message.router)
