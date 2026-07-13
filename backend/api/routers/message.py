@@ -1,3 +1,17 @@
+#done
+#いいねの押下とその数の取得
+#投稿
+#カテゴリ分けは数種類
+#カテゴリをユーザが記入できる
+
+#to do
+#自分の投稿を見れるように
+#ユーザー認証　または　投稿の削除
+
+#DBのSQLite化
+#コメント機能
+#グループ作成
+
 from datetime import datetime
 from fastapi import APIRouter
 from fastapi import HTTPException
