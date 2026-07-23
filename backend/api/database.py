@@ -238,13 +238,36 @@ def like_post(post_id: int, user_id: int) -> dict[str, Any]:
             raise ValueError("already liked")
         conn.execute("INSERT INTO likes (post_id, user_id, created_at) VALUES (?, ?, ?)", (post_id, user_id, now_iso()))
         conn.execute("UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?", (post_id,))
-        owner_row = conn.execute("SELECT username, display_name FROM users WHERE id = ?", (post_row["user_id"],)).fetchone()
-        if owner_row is not None and owner_row["username"] != "":
+
+        owner_row = conn.execute(
+            "SELECT username, display_name FROM users WHERE id = ?",
+            (post_row["user_id"],),
+        ).fetchone()
+        liker_row = conn.execute(
+            "SELECT username, display_name FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        post_content_row = conn.execute(
+            "SELECT content FROM posts WHERE id = ?",
+            (post_id,),
+        ).fetchone()
+        if owner_row is not None and liker_row is not None:
             receiver_id = post_row["user_id"]
+            liker_name = liker_row["display_name"] or liker_row["username"]
+            content = post_content_row["content"] if post_content_row else ""
+            preview = content[:20] + ("..." if len(content) > 20 else "")
+            message = f'{liker_name}さんがあなたの投稿「{preview}」にいいねしました'
             conn.execute(
                 "INSERT INTO notifications (user_id, post_id, notification_type, message, created_at) VALUES (?, ?, ?, ?, ?)",
-                (receiver_id, post_id, "like", f"{user_id} liked your post", now_iso()),
+                (
+                    receiver_id,
+                    post_id,
+                    "like",
+                    message,
+                    now_iso(),
+                ),
             )
+
         conn.commit()
         updated_row = conn.execute(
             "SELECT p.id, p.user_id, p.content, p.category, p.images_json, p.likes_count, p.created_at, u.username, u.display_name FROM posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?",

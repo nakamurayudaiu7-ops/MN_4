@@ -7,9 +7,11 @@ import Timeline from "./components/Timeline";
 import { Post } from "./types/post";
 
 const DEFAULT_CATEGORIES = ["筋トレ", "勉強", "家事"];
+import { API_BASE } from "@/config";
 //const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
-const API_BASE = "http://127.0.0.1:8001";
+//const API_BASE = "http://127.0.0.1:8001";
 //const API_BASE = "http://192.168.50.15:8000";
+//const API_BASE = "http://10.1.60.110:8000";
 type AuthMode = "login" | "register";
 
 type UserSession = {
@@ -152,6 +154,7 @@ export default function Home() {
     }
 
     try {
+      console.log("post", `${API_BASE}/api/posts`); // デバッグ用のログ
       const response = await fetch(`${API_BASE}/api/posts`, {
         method: "POST",
         headers: {

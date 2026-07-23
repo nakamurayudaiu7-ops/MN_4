@@ -10,7 +10,9 @@ interface PostFormProps {
 
 //const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
 //const API_BASE = "http://127.0.0.1:8001";
-const API_BASE = "http://192.168.50.15:8000";
+//const API_BASE = "http://192.168.50.15:8000";
+//const API_BASE = "http://10.1.60.110:8000";
+import { API_BASE } from "@/config";
 
 export default function PostForm({ onSubmit, categories, onAddCategory }: PostFormProps) {
   const [input, setInput] = useState("");
@@ -81,6 +83,8 @@ export default function PostForm({ onSubmit, categories, onAddCategory }: PostFo
   };
 
   const isDisabled = input.trim() === "" || selectedCategory.trim() === "";
+
+  console.log("upload", `${API_BASE}/api/posts/upload`);  // デバッグ用のログ
 
   return (
     <div className="border-b border-gray-200 bg-white p-3 sm:p-4">

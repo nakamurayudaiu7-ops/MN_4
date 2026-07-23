@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Post } from "../types/post";
 import { formatRelativeTime } from "../utils/time";
+import { API_BASE } from "@/config";
+
 
 interface PostCardProps {
   post: Post;
@@ -24,6 +26,15 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
     setTimeout(() => {
       setIsAnimating(false);
     }, 600);
+  };
+
+  const images = post.images ?? [];
+
+  const getImageSrc = (image: string) => {
+    if (image.startsWith("/")) {
+      return `${API_BASE}${image}`;
+    }
+    return image;
   };
 
   return (
@@ -77,16 +88,22 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
           )}
 
           {/* 画像ギャラリー */}
-          {post.images && post.images.length > 0 && (
-            <div className="mt-3 grid gap-1 sm:gap-2" style={{
-              gridTemplateColumns: post.images.length === 1 ? "1fr" : "repeat(2, 1fr)"
-            }}>
-              {post.images.slice(0, 4).map((image, index) => (
-                <div key={index} className="relative bg-gray-200 rounded-lg overflow-hidden aspect-square">
+          {images.length > 0 && (
+            <div
+              className="mt-3 grid gap-1 sm:gap-2"
+              style={{
+                gridTemplateColumns: images.length === 1 ? "1fr" : "repeat(2, 1fr)",
+              }}
+            >
+              {images.slice(0, 4).map((image, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-square overflow-hidden rounded-lg bg-gray-200"
+                >
                   <img
-                    src={image}
+                    src={getImageSrc(image)}
                     alt={`投稿画像 ${index + 1}`}
-                    className="w-full h-full object-cover hover:opacity-75 transition"
+                    className="h-full w-full object-cover transition hover:opacity-75"
                   />
                 </div>
               ))}
